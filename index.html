@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GameLand</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.min.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+    font-family:Tahoma,Arial,sans-serif;
+    background:linear-gradient(135deg,#090b18,#11152b,#080a14);
+    color:#fff;
+    min-height:100vh;
+}
+
+header{
+    height:72px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 7%;
+    background:rgba(10,12,28,.88);
+    border-bottom:1px solid rgba(255,255,255,.08);
+    position:sticky;
+    top:0;
+    z-index:100;
+    backdrop-filter:blur(12px);
+}
+
+.logo{font-size:25px;font-weight:bold;color:#fff}
+.logo span{color:#7c5cff}
+
+nav{
+    display:flex;
+    gap:10px;
+}
+
+nav button{
+    border:0;
+    background:transparent;
+    color:#aaa;
+    padding:11px 18px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:15px;
+    transition:.2s;
+}
+
+nav button:hover,
+nav button.active{
+    color:#fff;
+    background:rgba(124,92,255,.15);
+}
+
+main{
+    width:min(1150px,92%);
+    margin:auto;
+}
+
+.page{
+    display:none;
+    padding:45px 0;
+}
+
+.page.active{
+    display:block;
+}
+
+.hero{
+    text-align:center;
+    padding:65px 15px 45px;
+}
+
+.hero h1{
+    font-size:48px;
+    margin-bottom:14px;
+}
+
+.hero h1 span{
+    color:#7c5cff;
+}
+
+.hero p{
+    color:#a8abc0;
+    font-size:17px;
+    line-height:1.9;
+}
+
+.section-title{
+    font-size:28px;
+    margin-bottom:25px;
+}
+
+.games-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:20px;
+}
+
+.game-card{
+    background:linear-gradient(145deg,rgba(25,29,55,.95),rgba(13,16,31,.95));
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:20px;
+    padding:25px;
+    min-height:205px;
+    transition:.25s;
+    box-shadow:0 15px 35px rgba(0,0,0,.2);
+}
+
+.game-card:hover{
+    transform:translateY(-5px);
+    border-color:rgba(124,92,255,.45);
+}
+
+.game-icon{
+    font-size:42px;
+    margin-bottom:15px;
+}
+
+.game-card h3{
+    font-size:20px;
+    margin-bottom:10px;
+}
+
+.game-card p{
+    color:#999db3;
+    font-size:14px;
+    line-height:1.8;
+    min-height:50px;
+}
+
+.btn{
+    border:0;
+    border-radius:12px;
+    padding:11px 20px;
+    cursor:pointer;
+    font-size:14px;
+    color:#fff;
+    background:linear-gradient(135deg,#7254ff,#9a65ff);
+    margin-top:15px;
+    transition:.2s;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+    filter:brightness(1.1);
+}
+
+.btn.secondary{
+    background:#20243b;
+}
+
+.center{text-align:center}
+.hidden{display:none!important}
+
+.game-page{
+    min-height:600px;
+}
+
+.game-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:25px;
+}
+
+.game-header h2{
+    font-size:30px;
+}
+
+.back{
+    margin-top:0;
+}
+
+.game-panel{
+    background:rgba(16,19,38,.92);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:22px;
+    padding:28px;
+    margin-top:20px;
+}
+
+.game-panel h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+input,select{
+    width:100%;
+    max-width:330px;
+    padding:13px 15px;
+    border-radius:12px;
+    border:1px solid #303550;
+    background:#101326;
+    color:#fff;
+    outline:none;
+    margin:6px;
+}
+
+input:focus{
+    border-color:#7c5cff;
+}
+
+.choice-row{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:20px 0;
+}
+
+.choice-row .btn{
+    margin:0;
+}
+
+.result{
+    margin-top:18px;
+    min-height:25px;
+    color:#b8badd;
+}
+
+.number-box{
+    text-align:center;
+}
+
+.number-box .big-number{
+    font-size:28px;
+    margin:15px;
+}
+
+/* Tic Tac Toe */
+
+.ttt-board{
+    width:310px;
+    max-width:90vw;
+    aspect-ratio:1;
+    margin:25px auto;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+}
+
+.ttt-cell{
+    background:#20243d;
+    border:1px solid #343958;
+    border-radius:14px;
+    font-size:45px;
+    color:#fff;
+    cursor:pointer;
+}
+
+.ttt-cell:hover{
+    background:#292e4d;
+}
+
+/* RPS */
+
+.rps-buttons{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:12px;
+}
+
+.rps-buttons button{
+    width:110px;
+    height:90px;
+    border:0;
+    border-radius:16px;
+    background:#20243d;
+    color:white;
+    cursor:pointer;
+    font-size:18px;
+}
+
+.rps-buttons button:hover{
+    background:#30365a;
+}
+
+/* Chess */
+
+.chess-board{
+    width:480px;
+    max-width:95vw;
+    aspect-ratio:1;
+    margin:20px auto;
+    display:grid;
+    grid-template-columns:repeat(8,1fr);
+    border:5px solid #292d47;
+}
+
+.chess-cell{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:clamp(25px,6vw,48px);
+    cursor:pointer;
+    user-select:none;
+}
+
+.chess-cell.light{
+    background:#e5d6b8;
+}
+
+.chess-cell.dark{
+    background:#806b54;
+}
+
+.chess-cell.selected{
+    box-shadow:inset 0 0 0 4px #7c5cff;
+}
+
+.chess-cell.possible{
+    box-shadow:inset 0 0 0 4px rgba(124,92,255,.55);
+}
+
+.chess-status{
+    text-align:center;
+    color:#b6b9ce;
+    min-height:28px;
+}
+
+/* Math */
+
+.math-question{
+    font-size:32px;
+    text-align:center;
+    margin:25px 0;
+}
+
+.math-timer{
+    text-align:center;
+    font-size:22px;
+    color:#ffbd58;
+}
+
+.math-score{
+    text-align:center;
+    color:#aeb2ca;
+}
+
+.difficulty-box{
+    max-width:500px;
+    margin:25px auto;
+    text-align:center;
+}
+
+.difficulty-box h3{
+    margin-bottom:20px;
+    font-size:23px;
+}
+
+/* Profile */
+
+.profile-box{
+    max-width:500px;
+    margin:auto;
+    background:#15192f;
+    border:1px solid rgba(255,255,255,.08);
+    padding:30px;
+    border-radius:20px;
+}
+
+.profile-box p{
+    color:#aaaec2;
+    margin:14px 0;
+}
+
+footer{
+    text-align:center;
+    padding:40px 10px;
+    color:#666b83;
+}
+
+@media(max-width:600px){
+
+    header{
+        padding:0 4%;
+    }
+
+    .logo{
+        font-size:20px;
+    }
+
+    nav button{
+        padding:9px 10px;
+        font-size:13px;
+    }
+
+    .hero h1{
+        font-size:36px;
+    }
+
+    .game-panel{
+        padding:18px;
+    }
+
+    .game-header h2{
+        font-size:24px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">
+Game<span>Land</span>
+</div>
+
+<nav>
+
+<button class="active" onclick="showPage('home',this)">
+خانه
+</button>
+
+<button onclick="showPage('games',this)">
+بازی‌ها
+</button>
+
+<button onclick="showPage('profile',this)">
+پروفایل
+</button>
+
+</nav>
+
+</header>
+
+<main>
+
+<!-- HOME -->
+
+<section id="home" class="page active">
+
+<div class="hero">
+
+<h1>
+به <span>GameLand</span> خوش آمدی 🎮
+</h1>
+
+<p>
+دنیایی از بازی‌های سرگرم‌کننده را همین‌جا تجربه کن.
+</p>
+
+<button class="btn" onclick="showPage('games')">
+شروع بازی
+</button>
+
+</div>
+
+</section>
+
+
+<!-- GAMES -->
+
+<section id="games" class="page">
+
+<h2 class="section-title">
+بازی‌ها 🎮
+</h2>
+
+<div class="games-grid">
+
+<div class="game-card">
+
+<div class="game-icon">🔢</div>
+
+<h3>
+حدس عدد
+</h3>
+
+<p>
+عدد مخفی را پیدا کن و با ربات رقابت کن.
+</p>
+
+<button class="btn" onclick="openGame('guess')">
+بازی کردن
+</button>
+
+</div>
+
+
+<div class="game-card">
+
+<div class="game-icon">⭕</div>
+
+<h3>
+دوز
+</h3>
+
+<p>
+مقابل ربات یا دوستت بازی کن.
+</p>
+
+<button class="btn" onclick="openGame('ttt')">
+بازی کردن
+</button>
+
+</div>
+
+
+<div class="game-card">
+
+<div class="game-icon">✊</div>
+
+<h3>
+سنگ کاغذ قیچی
+</h3>
+
+<p>
+فقط در برابر ربات بازی کن.
+</p>
+
+<button class="btn" onclick="openGame('rps')">
+بازی کردن
+</button>
+
+</div>
+
+
+<div class="game-card">
+
+<div class="game-icon">♟️</div>
+
+<h3>
+شطرنج
+</h3>
+
+<p>
+در برابر ربات یا دو نفره بازی کن.
+</p>
+
+<button class="btn" onclick="openGame('chess')">
+بازی کردن
+</button>
+
+</div>
+
+
+<div class="game-card">
+
+<div class="game-icon">🧠</div>
+
+<h3>
+مسابقه ریاضی
+</h3>
+
+<p>
+سؤال‌های ریاضی را قبل از تمام شدن زمان حل کن.
+</p>
+
+<button class="btn" onclick="openGame('math')">
+بازی کردن
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- GUESS -->
+
+<section id="guess" class="page game-page">
+
+<div class="game-header">
+
+<button class="btn secondary" onclick="backToGames()">
+← بازگشت به بازی‌ها
+</button>
+
+<h2>
+🔢 حدس عدد
+</h2>
+
+</div>
+
+<div class="game-panel">
+
+<div class="choice-row">
+
+<button class="btn" onclick="startGuess()">
+🤖 شروع بازی با ربات
+</button>
+
+</div>
+
+<div id="guessArea" class="number-box hidden">
+
+<p id="guessInfo"></p>
+
+<input
+id="guessInput"
+type="number"
+placeholder="عدد را وارد کن"
+>
+
+<br>
+
+<button class="btn" onclick="makeGuess()">
+حدس بزن
+</button>
+
+<div id="guessResult" class="result"></div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- TTT -->
+
+<section id="ttt" class="page game-page">
+
+<div class="game-header">
+
+<button class="btn secondary" onclick="backToGames()">
+← بازگشت به بازی‌ها
+</button>
+
+<h2>
+⭕ دوز
+</h2>
+
+</div>
+
+<div class="game-panel">
+
+<div class="choice-row">
+
+<button class="btn" onclick="startTTT(true)">
+🤖 مقابل ربات
+</button>
+
+<button class="btn" onclick="startTTT(false)">
+👥 دو نفره
+</button>
+
+</div>
+
+<div id="tttArea" class="hidden">
+
+<div id="tttStatus" class="center"></div>
+
+<div
+class="ttt-board"
+id="tttBoard"
+></div>
+
+<div class="center">
+
+<button
+class="btn secondary"
+onclick="startTTT(tttBot)"
+>
+شروع دوباره
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- RPS -->
+
+<section id="rps" class="page game-page">
+
+<div class="game-header">
+
+<button class="btn secondary" onclick="backToGames()">
+← بازگشت به بازی‌ها
+</button>
+
+<h2>
+✊ سنگ کاغذ قیچی
+</h2>
+
+</div>
+
+<div class="game-panel">
+
+<p class="center">
+انتخاب کن:
+</p>
+
+<div class="rps-buttons">
+
+<button onclick="playRPS('rock')">
+✊
+<br>
+سنگ
+</button>
+
+<button onclick="playRPS('paper')">
+📄
+<br>
+کاغذ
+</button>
+
+<button onclick="playRPS('scissors')">
+✂️
+<br>
+قیچی
+</button>
+
+</div>
+
+<div
+id="rpsResult"
+class="result center"
+></div>
+
+</div>
+
+</section>
+
+
+<!-- CHESS -->
+
+<section id="chess" class="page game-page">
+
+<div class="game-header">
+
+<button class="btn secondary" onclick="backToGames()">
+← بازگشت به بازی‌ها
+</button>
+
+<h2>
+♟️ شطرنج
+</h2>
+
+</div>
+
+<div class="game-panel">
+
+<div class="choice-row">
+
+<button
+class="btn"
+onclick="startChess(true)"
+>
+🤖 مقابل ربات
+</button>
+
+<button
+class="btn"
+onclick="startChess(false)"
+>
+👥 دو نفره
+</button>
+
+</div>
+
+<div id="chessArea" class="hidden">
+
+<div
+id="chessStatus"
+class="chess-status"
+></div>
+
+<div
+id="chessBoard"
+class="chess-board"
+></div>
+
+<div class="center">
+
+<button
+class="btn secondary"
+onclick="startChess(chessBot)"
+>
+شروع دوباره
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- MATH -->
+
+<section id="math" class="page game-page">
+
+<div class="game-header">
+
+<button
+class="btn secondary"
+onclick="mathBack()"
+>
+← بازگشت به بازی‌ها
+</button>
+
+<h2>
+🧠 مسابقه ریاضی
+</h2>
+
+</div>
+
+<div class="game-panel">
+
+<div
+id="mathDifficulty"
+class="difficulty-box"
+>
+
+<h3>
+سختی بازی را انتخاب کنید
+</h3>
+
+<div class="choice-row">
+
+<button
+class="btn"
+onclick="startMath('easy')"
+>
+🟢 آسان
+</button>
+
+<button
+class="btn"
+onclick="startMath('hard')"
+>
+🔴 سخت
+</button>
+
+</div>
+
+</div>
+
+
+<div
+id="mathPlay"
+class="hidden"
+>
+
+<div class="math-score">
+
+امتیاز:
+<span id="mathScore">0</span>
+
+</div>
+
+<div class="math-timer">
+
+⏱️ زمان:
+<span id="mathTimer">10</span>
+
+</div>
+
+<div
+id="mathQuestion"
+class="math-question"
+></div>
+
+<div class="center">
+
+<input
+id="mathAnswer"
+type="number"
+placeholder="جواب"
+>
+
+<br>
+
+<button
+class="btn"
+onclick="checkMathAnswer()"
+>
+ثبت جواب
+</button>
+
+</div>
+
+<div
+id="mathMessage"
+class="result center"
+></div>
+
+<div class="center">
+
+<button
+class="btn secondary"
+onclick="mathBack()"
+>
+🔙 بازگشت به بازی‌ها
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- PROFILE -->
+
+<section id="profile" class="page">
+
+<h2 class="section-title">
+پروفایل 👤
+</h2>
+
+<div class="profile-box">
+
+<h2>
+GameLand Profile
+</h2>
+
+<input
+id="profileName"
+placeholder="نام شما"
+>
+
+<button
+class="btn"
+onclick="saveProfile()"
+>
+ذخیره نام
+</button>
+
+<p>
+نام:
+<span id="showName">بازیکن</span>
+</p>
+
+<p>
+امتیاز مسابقه ریاضی:
+<span id="profileMath">0</span>
+</p>
+
+<p>
+بردهای دوز:
+<span id="profileTTT">0</span>
+</p>
+
+</div>
+
+</section>
+
+</main>
+
+<footer>
+GameLand 🎮
+</footer>
+
+
+<script>
+
+/* PAGE SYSTEM */
+
+function showPage(id,button){
+
+document.querySelectorAll('.page')
+.forEach(page=>{
+page.classList.remove('active');
+});
+
+const target=document.getElementById(id);
+
+if(target){
+target.classList.add('active');
+}
+
+document.querySelectorAll('nav button')
+.forEach(btn=>{
+btn.classList.remove('active');
+});
+
+if(button){
+button.classList.add('active');
+}
+
+}
+
+
+function openGame(game){
+
+clearInterval(mathInterval);
+
+mathPlaying=false;
+
+document.querySelectorAll('.page')
+.forEach(page=>{
+page.classList.remove('active');
+});
+
+document.getElementById(game)
+.classList.add('active');
+
+document.querySelectorAll('nav button')
+.forEach(btn=>{
+btn.classList.remove('active');
+});
+
+if(game==='guess'){
+resetGuess();
+}
+
+if(game==='ttt'){
+document.getElementById('tttArea')
+.classList.add('hidden');
+}
+
+if(game==='rps'){
+document.getElementById('rpsResult')
+.innerHTML='';
+}
+
+if(game==='chess'){
+document.getElementById('chessArea')
+.classList.add('hidden');
+}
+
+if(game==='math'){
+resetMath();
+}
+
+}
+
+
+function backToGames(){
+
+clearInterval(mathInterval);
+
+mathPlaying=false;
+
+document.querySelectorAll('.page')
+.forEach(page=>{
+page.classList.remove('active');
+});
+
+document.getElementById('games')
+.classList.add('active');
+
+document.querySelectorAll('nav button')
+.forEach(btn=>{
+btn.classList.remove('active');
+});
+
+document.querySelectorAll('nav button')[1]
+.classList.add('active');
+
+}
+
+
+/* GUESS NUMBER */
+
+let guessMode=1;
+let secretNumber=0;
+
+function resetGuess(){
+
+document.getElementById('guessArea')
+.classList.add('hidden');
+
+document.getElementById('guessResult')
+.innerHTML='';
+
+document.getElementById('guessInput')
+.value='';
+
+}
+
+function startGuess(){
+
+guessMode=1;
+
+secretNumber=
+Math.floor(Math.random()*100)+1;
+
+document.getElementById('guessArea')
+.classList.remove('hidden');
+
+document.getElementById('guessInfo')
+.innerText=
+'🤖 یک عدد بین ۱ تا ۱۰۰ را حدس بزن و با ربات بازی کن.';
+
+document.getElementById('guessResult')
+.innerText='';
+
+}
+
+function makeGuess(){
+
+const value=
+Number(
+document.getElementById('guessInput').value
+);
+
+if(!value){
+
+document.getElementById('guessResult')
+.innerText=
+'یک عدد وارد کن.';
+
+return;
+
+}
+
+if(value===secretNumber){
+
+document.getElementById('guessResult')
+.innerText=
+'🎉 درست حدس زدی!';
+
+return;
+
+}
+
+if(value<secretNumber){
+
+document.getElementById('guessResult')
+.innerText=
+'⬆️ عدد بزرگ‌تر است.';
+
+}else{
+
+document.getElementById('guessResult')
+.innerText=
+'⬇️ عدد کوچک‌تر است.';
+
+}
+
+document.getElementById('guessInput')
+.value='';
+
+}
+
+
+/* TIC TAC TOE */
+
+let tttBoard=[];
+let tttTurn='X';
+let tttBot=true;
+
+function startTTT(bot){
+
+tttBot=bot;
+
+tttBoard=[
+'','','',
+'','','',
+'','',''
+];
+
+tttTurn='X';
+
+document.getElementById('tttArea')
+.classList.remove('hidden');
+
+renderTTT();
+
+}
+
+function renderTTT(){
+
+const board=
+document.getElementById('tttBoard');
+
+board.innerHTML='';
+
+tttBoard.forEach((value,index)=>{
+
+const cell=
+document.createElement('button');
+
+cell.className='ttt-cell';
+
+cell.innerText=value;
+
+cell.onclick=()=>{
+tttMove(index);
+};
+
+board.appendChild(cell);
+
+});
+
+document.getElementById('tttStatus')
+.innerText=
+`نوبت ${tttTurn}`;
+
+}
+
+function tttMove(index){
+
+if(tttBoard[index])return;
+
+tttBoard[index]=tttTurn;
+
+if(checkTTTEnd())return;
+
+tttTurn=
+tttTurn==='X'
+?'O'
+:'X';
+
+renderTTT();
+
+if(tttBot && tttTurn==='O'){
+
+setTimeout(
+tttBotMove,
+350
+);
+
+}
+
+}
+
+function tttBotMove(){
+
+const empty=
+tttBoard
+.map((v,i)=>v===''?i:null)
+.filter(v=>v!==null);
+
+if(!empty.length)return;
+
+const index=
+empty[
+Math.floor(
+Math.random()*empty.length
+)
+];
+
+tttBoard[index]='O';
+
+if(checkTTTEnd())return;
+
+tttTurn='X';
+
+renderTTT();
+
+}
+
+function checkTTTEnd(){
+
+const wins=[
+[0,1,2],
+[3,4,5],
+[6,7,8],
+[0,3,6],
+[1,4,7],
+[2,5,8],
+[0,4,8],
+[2,4,6]
+];
+
+for(
+const [a,b,c]
+of wins
+){
+
+if(
+tttBoard[a] &&
+tttBoard[a]===tttBoard[b] &&
+tttBoard[a]===tttBoard[c]
+){
+
+document.getElementById('tttStatus')
+.innerText=
+`🎉 ${tttBoard[a]} برنده شد!`;
+
+if(tttBoard[a]==='X'){
+
+let winsCount=
+Number(
+localStorage.getItem('tttWins')||0
+)+1;
+
+localStorage.setItem(
+'tttWins',
+winsCount
+);
+
+loadProfile();
+
+}
+
+return true;
+
+}
+
+}
+
+if(!tttBoard.includes('')){
+
+document.getElementById('tttStatus')
+.innerText=
+'🤝 مساوی شد!';
+
+return true;
+
+}
+
+return false;
+
+}
+
+
+/* ROCK PAPER SCISSORS */
+
+function playRPS(player){
+
+const options=[
+'rock',
+'paper',
+'scissors'
+];
+
+const bot=
+options[
+Math.floor(
+Math.random()*3
+)
+];
+
+const names={
+rock:'✊ سنگ',
+paper:'📄 کاغذ',
+scissors:'✂️ قیچی'
+};
+
+let result='';
+
+if(player===bot){
+
+result='🤝 مساوی!';
+
+}else if(
+
+(player==='rock' &&
+bot==='scissors') ||
+
+(player==='paper' &&
+bot==='rock') ||
+
+(player==='scissors' &&
+bot==='paper')
+
+){
+
+result='🎉 تو بردی!';
+
+}else{
+
+result='🤖 ربات برد!';
+
+}
+
+document.getElementById('rpsResult')
+.innerHTML=
+`تو: ${names[player]}
+<br>
+ربات: ${names[bot]}
+<br><br>
+${result}`;
+
+}
+
+
+/* CHESS */
+
+let chessGameObj=null;
+let chessBot=false;
+let selectedSquare=null;
+
+const chessPieces={
+p:'♟',
+r:'♜',
+n:'♞',
+b:'♝',
+q:'♛',
+k:'♚'
+};
+
+function startChess(bot){
+
+chessBot=bot;
+
+chessGameObj=new Chess();
+
+selectedSquare=null;
+
+document.getElementById('chessArea')
+.classList.remove('hidden');
+
+renderChess();
+
+}
+
+function renderChess(){
+
+const board=
+document.getElementById('chessBoard');
+
+board.innerHTML='';
+
+const position=
+chessGameObj.board();
+
+for(
+let r=0;
+r<8;
+r++
+){
+
+for(
+let c=0;
+c<8;
+c++
+){
+
+const cell=
+document.createElement('div');
+
+cell.className=
+'chess-cell '+
+(
+(r+c)%2===0
+?'light'
+:'dark'
+);
+
+const piece=
+position[r][c];
+
+if(piece){
+
+cell.innerText=
+chessPieces[piece.type];
+
+}
+
+const file=
+'abcdefgh'[c];
+
+const rank=
+8-r;
+
+const square=
+file+rank;
+
+cell.dataset.square=square;
+
+if(
+selectedSquare===square
+){
+
+cell.classList.add(
+'selected'
+);
+
+}
+
+if(selectedSquare){
+
+const moves=
+chessGameObj.moves({
+square:selectedSquare,
+verbose:true
+});
+
+if(
+moves.some(
+m=>m.to===square
+)
+){
+
+cell.classList.add(
+'possible'
+);
+
+}
+
+}
+
+cell.onclick=()=>{
+chessClick(square);
+};
+
+board.appendChild(cell);
+
+}
+
+}
+
+let status=
+'نوبت سفید ♙';
+
+if(
+chessGameObj.turn()==='b'
+){
+
+status=
+'نوبت سیاه ♟';
+
+}
+
+if(
+chessGameObj.in_check()
+){
+
+status+=' — کیش!';
+
+}
+
+if(
+chessGameObj.game_over()
+){
+
+if(
+chessGameObj.in_checkmate()
+){
+
+status=
+'♚ کیش‌ومات!';
+
+}else{
+
+status=
+'🤝 بازی تمام شد / مساوی';
+
+}
+
+}
+
+document.getElementById('chessStatus')
+.innerText=status;
+
+}
+
+function chessClick(square){
+
+if(
+chessGameObj.game_over()
+){
+return;
+}
+
+if(
+chessBot &&
+chessGameObj.turn()==='b'
+){
+return;
+}
+
+if(!selectedSquare){
+
+const piece=
+chessGameObj.get(square);
+
+if(!piece)return;
+
+if(
+chessBot &&
+piece.color!=='w'
+){
+return;
+}
+
+selectedSquare=square;
+
+renderChess();
+
+return;
+
+}
+
+const move=
+chessGameObj.move({
+from:selectedSquare,
+to:square,
+promotion:'q'
+});
+
+if(!move){
+
+const piece=
+chessGameObj.get(square);
+
+if(
+piece &&
+(!chessBot ||
+piece.color==='w')
+){
+
+selectedSquare=square;
+
+renderChess();
+
+}
+
+return;
+
+}
+
+selectedSquare=null;
+
+renderChess();
+
+if(
+chessBot &&
+!chessGameObj.game_over()
+){
+
+setTimeout(
+chessBotMove,
+500
+);
+
+}
+
+}
+
+function chessBotMove(){
+
+if(
+!chessGameObj ||
+chessGameObj.game_over()
+){
+return;
+}
+
+if(
+chessGameObj.turn()!=='b'
+){
+return;
+}
+
+const moves=
+chessGameObj.moves({
+verbose:true
+});
+
+if(!moves.length)return;
+
+const captures=
+moves.filter(
+m=>m.captured
+);
+
+const pool=
+captures.length
+?captures
+:moves;
+
+const move=
+pool[
+Math.floor(
+Math.random()*pool.length
+)
+];
+
+chessGameObj.move({
+from:move.from,
+to:move.to,
+promotion:'q'
+});
+
+renderChess();
+
+}
+
+
+/* MATH CONTEST */
+
+let mathDifficulty=null;
+let mathPlaying=false;
+let mathInterval=null;
+let mathTime=10;
+let mathScore=0;
+let mathA=0;
+let mathB=0;
+
+function resetMath(){
+
+clearInterval(mathInterval);
+
+mathInterval=null;
+mathPlaying=false;
+mathDifficulty=null;
+mathTime=10;
+mathScore=0;
+mathA=0;
+mathB=0;
+
+document.getElementById('mathDifficulty')
+.classList.remove('hidden');
+
+document.getElementById('mathPlay')
+.classList.add('hidden');
+
+document.getElementById('mathScore')
+.innerText='0';
+
+document.getElementById('mathTimer')
+.innerText='10';
+
+document.getElementById('mathQuestion')
+.innerText='';
+
+document.getElementById('mathMessage')
+.innerText='';
+
+document.getElementById('mathAnswer')
+.value='';
+
+}
+
+function mathBack(){
+
+resetMath();
+
+backToGames();
+
+}
+
+function startMath(difficulty){
+
+clearInterval(mathInterval);
+
+mathDifficulty=difficulty;
+mathPlaying=true;
+mathScore=0;
+mathTime=10;
+
+document.getElementById('mathDifficulty')
+.classList.add('hidden');
+
+document.getElementById('mathPlay')
+.classList.remove('hidden');
+
+document.getElementById('mathScore')
+.innerText='0';
+
+document.getElementById('mathMessage')
+.innerText='';
+
+nextMathQuestion();
+
+}
+
+function randomMathNumber(){
+
+if(
+mathDifficulty==='easy'
+){
+
+return Math.floor(
+Math.random()*18
+)+2;
+
+}
+
+return Math.floor(
+Math.random()*31
+)+20;
+
+}
+
+function nextMathQuestion(){
+
+if(
+!mathPlaying ||
+!mathDifficulty
+){
+return;
+}
+
+mathA=
+randomMathNumber();
+
+mathB=
+randomMathNumber();
+
+document.getElementById('mathQuestion')
+.innerText=
+`${mathA} × ${mathB} = ?`;
+
+document.getElementById('mathAnswer')
+.value='';
+
+mathTime=10;
+
+document.getElementById('mathTimer')
+.innerText=mathTime;
+
+clearInterval(mathInterval);
+
+mathInterval=
+setInterval(()=>{
+
+if(!mathPlaying){
+
+clearInterval(
+mathInterval
+);
+
+return;
+
+}
+
+mathTime--;
+
+document.getElementById(
+'mathTimer'
+).innerText=mathTime;
+
+if(mathTime<=0){
+
+clearInterval(
+mathInterval
+);
+
+document.getElementById(
+'mathMessage'
+).innerText=
+`⏰ وقت تمام شد! جواب: ${
+mathA*mathB
+}`;
+
+setTimeout(()=>{
+
+if(mathPlaying){
+
+nextMathQuestion();
+
+}
+
+},700);
+
+}
+
+},1000);
+
+setTimeout(()=>{
+
+if(mathPlaying){
+
+document.getElementById(
+'mathAnswer'
+).focus();
+
+}
+
+},50);
+
+}
+
+function checkMathAnswer(){
+
+if(
+!mathPlaying ||
+!mathDifficulty
+){
+return;
+}
+
+const answer=
+Number(
+document.getElementById(
+'mathAnswer'
+).value
+);
+
+if(
+answer===mathA*mathB
+){
+
+clearInterval(
+mathInterval
+);
+
+mathScore++;
+
+document.getElementById(
+'mathScore'
+).innerText=mathScore;
+
+localStorage.setItem(
+'mathScore',
+mathScore
+);
+
+document.getElementById(
+'mathMessage'
+).innerText=
+'✅ درست!';
+
+setTimeout(()=>{
+
+if(mathPlaying){
+
+nextMathQuestion();
+
+}
+
+},400);
+
+}else{
+
+document.getElementById(
+'mathMessage'
+).innerText=
+'❌ جواب اشتباه است!';
+
+}
+
+}
+
+document.getElementById(
+'mathAnswer'
+).addEventListener(
+'keydown',
+function(e){
+
+if(e.key==='Enter'){
+
+checkMathAnswer();
+
+}
+
+});
+
+
+/* PROFILE */
+
+function saveProfile(){
+
+const name=
+document.getElementById(
+'profileName'
+).value.trim();
+
+if(name){
+
+localStorage.setItem(
+'gameLandName',
+name
+);
+
+loadProfile();
+
+}
+
+}
+
+function loadProfile(){
+
+const name=
+localStorage.getItem(
+'gameLandName'
+)||'بازیکن';
+
+const math=
+localStorage.getItem(
+'mathScore'
+)||'0';
+
+const wins=
+localStorage.getItem(
+'tttWins'
+)||'0';
+
+document.getElementById(
+'showName'
+).innerText=name;
+
+document.getElementById(
+'profileMath'
+).innerText=math;
+
+document.getElementById(
+'profileTTT'
+).innerText=wins;
+
+}
+
+loadProfile();
+
+</script>
+
+</body>
+</html>
