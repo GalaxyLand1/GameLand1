@@ -233,7 +233,23 @@ input:focus{
 }
 
 /* Tic Tac Toe */
+.ttt-wrapper{
+    position:relative;
+    width:310px;
+    max-width:90vw;
+    margin:25px auto;
+}
 
+.ttt-win-line{
+    position:absolute;
+    background:#00ff88;
+    height:6px;
+    border-radius:10px;
+    display:none;
+    transform-origin:center;
+    z-index:10;
+    
+}
 .ttt-board{
     width:310px;
     max-width:90vw;
@@ -251,6 +267,20 @@ input:focus{
     font-size:45px;
     color:#fff;
     cursor:pointer;
+
+    width:100%;
+    aspect-ratio:1/1;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+}
+
+.ttt-cell.win{
+background:#28a745 !important;
+color:white;
+
 }
 
 .ttt-cell:hover{
@@ -297,6 +327,9 @@ input:focus{
     display:flex;
     justify-content:center;
     align-items:center;
+
+    aspect-ratio:1/1;
+
     font-size:clamp(25px,6vw,48px);
     cursor:pointer;
     user-select:none;
@@ -651,10 +684,19 @@ placeholder="عدد را وارد کن"
 
 <div id="tttStatus" class="center"></div>
 
+<div class="ttt-wrapper">
+
 <div
 class="ttt-board"
 id="tttBoard"
 ></div>
+
+<div
+id="tttWinLine"
+class="ttt-win-line"
+></div>
+
+</div>
 
 <div class="center">
 
@@ -1066,6 +1108,7 @@ document.querySelectorAll('nav button')[1]
 
 let guessMode=1;
 let secretNumber=0;
+let guessAttempts=10;
 
 function resetGuess(){
 
@@ -1086,6 +1129,8 @@ guessMode=1;
 
 secretNumber=
 Math.floor(Math.random()*100)+1;
+
+guessAttempts=10;
 
 document.getElementById('guessArea')
 .classList.remove('hidden');
@@ -1116,6 +1161,8 @@ return;
 
 }
 
+guessAttempts--;
+
 if(value===secretNumber){
 
 document.getElementById('guessResult')
@@ -1130,13 +1177,23 @@ if(value<secretNumber){
 
 document.getElementById('guessResult')
 .innerText=
-'⬆️ عدد بزرگ‌تر است.';
+`⬆️ عدد بزرگ‌تر است. (${guessAttempts} شانس باقی مانده)`
 
 }else{
 
 document.getElementById('guessResult')
 .innerText=
-'⬇️ عدد کوچک‌تر است.';
+`⬆️ عدد کوچک‌تر است. (${guessAttempts} شانس باقی مانده)`
+
+}
+
+if(guessAttempts<=0){
+
+document.getElementById('guessResult')
+.innerText=
+`❌ شانس‌ها تمام شد! عدد صحیح ${secretNumber} بود.`;
+
+return;
 
 }
 
@@ -1151,8 +1208,11 @@ document.getElementById('guessInput')
 let tttBoard=[];
 let tttTurn='X';
 let tttBot=true;
+let winningCells = [];
 
 function startTTT(bot){
+
+tttGameOver=false;
 
 tttBot=bot;
 
@@ -1163,6 +1223,8 @@ tttBoard=[
 ];
 
 tttTurn='X';
+
+window.winningCells=[];
 
 document.getElementById('tttArea')
 .classList.remove('hidden');
@@ -1185,6 +1247,17 @@ document.createElement('button');
 
 cell.className='ttt-cell';
 
+if(
+window.winningCells &&
+window.winningCells.includes(index)
+){
+cell.classList.add('win');
+}
+
+if(winningCells.includes(index)){
+    cell.style.background='#00c853';
+}
+
 cell.innerText=value;
 
 cell.onclick=()=>{
@@ -1203,9 +1276,13 @@ document.getElementById('tttStatus')
 
 function tttMove(index){
 
+if(tttGameOver)return;
+
 if(tttBoard[index])return;
 
 tttBoard[index]=tttTurn;
+
+renderTTT();
 
 if(checkTTTEnd())return;
 
@@ -1249,6 +1326,8 @@ if(checkTTTEnd())return;
 
 tttTurn='X';
 
+window.winningCells=[];
+
 renderTTT();
 
 }
@@ -1277,9 +1356,15 @@ tttBoard[a]===tttBoard[b] &&
 tttBoard[a]===tttBoard[c]
 ){
 
+window.winningCells=[a,b,c];
+
+renderTTT();
+
 document.getElementById('tttStatus')
 .innerText=
 `🎉 ${tttBoard[a]} برنده شد!`;
+
+tttGameOver=true;
 
 if(tttBoard[a]==='X'){
 
@@ -1308,6 +1393,8 @@ if(!tttBoard.includes('')){
 document.getElementById('tttStatus')
 .innerText=
 '🤝 مساوی شد!';
+
+tttGameOver=true;
 
 return true;
 
@@ -1447,8 +1534,43 @@ position[r][c];
 
 if(piece){
 
-cell.innerText=
-chessPieces[piece.type];
+if(piece.color==='w'){
+    cell.innerText=getPieceSymbol(piece);
+    cell.style.color='white';
+}else{
+    cell.innerText=getPieceSymbol(piece);
+    cell.style.color='black';
+}
+
+function getPieceSymbol(piece){
+
+if(piece.color==='w'){
+
+const white={
+p:'♙',
+r:'♖',
+n:'♘',
+b:'♗',
+q:'♕',
+k:'♔'
+};
+
+return white[piece.type];
+
+}
+
+const black={
+p:'♟',
+r:'♜',
+n:'♞',
+b:'♝',
+q:'♛',
+k:'♚'
+};
+
+return black[piece.type];
+
+}
 
 }
 
@@ -1682,7 +1804,6 @@ renderChess();
 
 }
 
-
 /* MATH CONTEST */
 
 let mathDifficulty=null;
@@ -1692,6 +1813,8 @@ let mathTime=10;
 let mathScore=0;
 let mathA=0;
 let mathB=0;
+let mathOperator='+';
+let mathAnswerCorrect=0;
 
 function resetMath(){
 
@@ -1788,20 +1911,71 @@ if(
 return;
 }
 
-mathA=
-randomMathNumber();
+mathA=randomMathNumber();
+mathB=randomMathNumber();
 
-mathB=
-randomMathNumber();
+if(mathDifficulty==='easy'){
+
+const operators=['+','-','×'];
+mathOperator=
+operators[Math.floor(Math.random()*operators.length)];
+
+}else{
+
+const operators=['×','÷'];
+mathOperator=
+operators[Math.floor(Math.random()*operators.length)];
+
+}
+
+if(mathOperator==='+'){
+
+mathAnswerCorrect=mathA+mathB;
+
+}
+
+else if(mathOperator==='-'){
+
+if(mathA<mathB){
+
+let temp=mathA;
+mathA=mathB;
+mathB=temp;
+
+}
+
+mathAnswerCorrect=mathA-mathB;
+
+}
+
+else if(mathOperator==='×'){
+
+mathAnswerCorrect=mathA*mathB;
+
+}
+
+else if(mathOperator==='÷'){
+
+mathB=Math.floor(Math.random()*10)+2;
+
+mathAnswerCorrect=Math.floor(Math.random()*20)+1;
+
+mathA=mathB*mathAnswerCorrect;
+
+}
 
 document.getElementById('mathQuestion')
 .innerText=
-`${mathA} × ${mathB} = ?`;
+`${mathA} ${mathOperator} ${mathB} = ?`;
+
+if(mathDifficulty==='hard'){
+    mathTime=20;
+}else{
+    mathTime=10;
+}
 
 document.getElementById('mathAnswer')
 .value='';
-
-mathTime=10;
 
 document.getElementById('mathTimer')
 .innerText=mathTime;
@@ -1836,9 +2010,8 @@ mathInterval
 document.getElementById(
 'mathMessage'
 ).innerText=
-`⏰ وقت تمام شد! جواب: ${
-mathA*mathB
-}`;
+`⏰ وقت تمام شد! جواب: 
+${mathAnswerCorrect}`;
 
 setTimeout(()=>{
 
@@ -1885,7 +2058,7 @@ document.getElementById(
 );
 
 if(
-answer===mathA*mathB
+answer===mathAnswerCorrect
 ){
 
 clearInterval(
@@ -2002,4 +2175,4 @@ loadProfile();
 </script>
 
 </body>
-</html>
+    </html>
