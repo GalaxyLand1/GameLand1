@@ -994,6 +994,21 @@ onclick="saveProfile()"
 <span id="profileTTT">0</span>
 </p>
 
+<p>
+بردهای حدس عدد:
+<span id="profileGuess">0</span>
+</p>
+
+<p>
+بردهای سنگ کاغذ قیچی:
+<span id="profileRPS">0</span>
+</p>
+
+<p>
+بردهای شطرنج:
+<span id="profileChess">0</span>
+</p>
+
 </div>
 
 </section>
@@ -1168,6 +1183,18 @@ if(value===secretNumber){
 document.getElementById('guessResult')
 .innerText=
 '🎉 درست حدس زدی!';
+
+let wins=
+Number(
+localStorage.getItem('guessWins')||0
+)+1;
+
+localStorage.setItem(
+'guessWins',
+wins
+);
+
+loadProfile();
 
 return;
 
@@ -1449,6 +1476,18 @@ bot==='paper')
 
 result='🎉 تو بردی!';
 
+let wins=
+Number(
+localStorage.getItem('rpsWins')||0
+)+1;
+
+localStorage.setItem(
+'rpsWins',
+wins
+);
+
+loadProfile();
+
 }else{
 
 result='🤖 ربات برد!';
@@ -1471,6 +1510,7 @@ ${result}`;
 let chessGameObj=null;
 let chessBot=false;
 let selectedSquare=null;
+let chessWinRecorded=false;
 
 const chessPieces={
 p:'♟',
@@ -1546,16 +1586,16 @@ function getPieceSymbol(piece){
 
 if(piece.color==='w'){
 
-const white={
-p:'♙',
-r:'♖',
-n:'♘',
-b:'♗',
-q:'♕',
-k:'♔'
+const symbols={
+    p:'♟',
+    r:'♜',
+    n:'♞',
+    b:'♝',
+    q:'♛',
+    k:'♚'
 };
 
-return white[piece.type];
+return symbols[piece.type];
 
 }
 
@@ -1657,6 +1697,20 @@ chessGameObj.in_checkmate()
 
 status=
 '♚ کیش‌ومات!';
+
+let wins=
+Number(
+localStorage.getItem('chessWins')||0
+)+1;
+
+localStorage.setItem(
+'chessWins',
+wins
+);
+
+chessWinRecorded=true;
+
+loadProfile();
 
 }else{
 
@@ -2156,6 +2210,21 @@ localStorage.getItem(
 'tttWins'
 )||'0';
 
+const guessWins=
+localStorage.getItem(
+'guessWins'
+)||'0';
+
+const rpsWins=
+localStorage.getItem(
+'rpsWins'
+)||'0';
+
+const chessWins=
+localStorage.getItem(
+'chessWins'
+)||'0';
+
 document.getElementById(
 'showName'
 ).innerText=name;
@@ -2168,6 +2237,18 @@ document.getElementById(
 'profileTTT'
 ).innerText=wins;
 
+document.getElementById(
+'profileGuess'
+).innerText=guessWins;
+
+document.getElementById(
+'profileRPS'
+).innerText=rpsWins;
+
+document.getElementById(
+'profileChess'
+).innerText=chessWins;
+
 }
 
 loadProfile();
@@ -2175,4 +2256,4 @@ loadProfile();
 </script>
 
 </body>
-    </html>
+</html
