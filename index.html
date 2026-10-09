@@ -437,6 +437,9 @@ footer{
     }
 }
 </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+
 </head>
 
 <body>
@@ -1179,10 +1182,10 @@ return;
 guessAttempts--;
 
 if(value===secretNumber){
-
-document.getElementById('guessResult')
-.innerText=
-'🎉 درست حدس زدی!';
+    playWinSound();  // ← اضافه کن
+    document.getElementById('guessResult')
+    .innerText=
+    '🎉 درست حدس زدی!';
 
 let wins=
 Number(
@@ -1215,7 +1218,7 @@ document.getElementById('guessResult')
 }
 
 if(guessAttempts<=0){
-
+playLoseSound();
 document.getElementById('guessResult')
 .innerText=
 `❌ شانس‌ها تمام شد! عدد صحیح ${secretNumber} بود.`;
@@ -1394,6 +1397,7 @@ document.getElementById('tttStatus')
 tttGameOver=true;
 
 if(tttBoard[a]==='X'){
+playWinSound();
 
 let winsCount=
 Number(
@@ -1406,7 +1410,8 @@ winsCount
 );
 
 loadProfile();
-
+}else{
+playLoseSound();
 }
 
 return true;
@@ -1416,6 +1421,7 @@ return true;
 }
 
 if(!tttBoard.includes('')){
+playLoseSound();
 
 document.getElementById('tttStatus')
 .innerText=
@@ -1458,7 +1464,7 @@ scissors:'✂️ قیچی'
 let result='';
 
 if(player===bot){
-
+playLoseSound();
 result='🤝 مساوی!';
 
 }else if(
@@ -1473,7 +1479,7 @@ bot==='rock') ||
 bot==='paper')
 
 ){
-
+playWinSound();
 result='🎉 تو بردی!';
 
 let wins=
@@ -1489,9 +1495,8 @@ wins
 loadProfile();
 
 }else{
-
+playLoseSound();
 result='🤖 ربات برد!';
-
 }
 
 document.getElementById('rpsResult')
@@ -1668,14 +1673,14 @@ board.appendChild(cell);
 }
 
 let status=
-'نوبت سفید ♙';
+'نوبت سفید ♟';
 
 if(
 chessGameObj.turn()==='b'
 ){
 
 status=
-'نوبت سیاه ♟';
+'نوبت سیاه ♙';
 
 }
 
@@ -1694,29 +1699,34 @@ chessGameObj.game_over()
 if(
 chessGameObj.in_checkmate()
 ){
-
-status=
-'♚ کیش‌ومات!';
+    // کی برده؟ اگه نوبت سفید باشه یعنی سیاه (ربات) برده
+if(chessGameObj.turn()==='w'){
+if(chessBot){
+playLoseSound();  // ← کاربر (سفید) باخته
+status='♚ کیش‌ومات! ربات برد 🤖';
+ }else{
+playWinSound();  // ← کاربر (سفید) برده
+status='♚ کیش‌و‌مات! سیاه برد ♟'
+}
+}else{
+if(chessBot){
+playWinSound();
+status='♚ کیش‌و‌مات! تو بردی 🎉'
 
 let wins=
-Number(
-localStorage.getItem('chessWins')||0
-)+1;
-
-localStorage.setItem(
-'chessWins',
-wins
-);
-
+Number(localStorage.getItem('chessWins')||0)+1;
+localStorage.setItem('chessWins',wins);
 chessWinRecorded=true;
-
 loadProfile();
+}else{
+playWinSound();
+status='♚ کیش‌و‌مات! سفید برد ♟'
+}
+}
 
 }else{
-
-status=
-'🤝 بازی تمام شد / مساوی';
-
+playLoseSound();  // ← مساوی هم باخت حساب کن
+status='بازی تمام شد 🎉';
 }
 
 }
@@ -2133,6 +2143,7 @@ mathScore
 document.getElementById(
 'mathMessage'
 ).innerText=
+playWinSound();
 '✅ درست!';
 
 setTimeout(()=>{
@@ -2150,6 +2161,7 @@ nextMathQuestion();
 document.getElementById(
 'mathMessage'
 ).innerText=
+playErrorSound();
 '❌ جواب اشتباه است!';
 
 }
@@ -2252,6 +2264,128 @@ document.getElementById(
 }
 
 loadProfile();
+
+/* ===== SOUND EFFECT SYSTEM ===== */
+
+// ساخت AudioContext برای تولید صدا
+let audioCtx = null;
+
+function getAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // بعضی مرورگرها نیاز به resume دارند
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    return audioCtx;
+}
+
+// تابع پخش صدای کلیک
+function playClickSound() {
+    try {
+        const ctx = getAudioContext();
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        // نوع موج و فرکانس (صدای کلیک نرم)
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.08);
+
+        // تنظیم حجم صدا (fade out نرم)
+        gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.1);
+    } catch (e) {
+        // اگه مرورگر پشتیبانی نکرد، بی‌صدا رد شو
+    }
+}
+
+// تابع پخش صدای برد (اختیاری - برای بردهای بازی)
+function playWinSound() {
+    try {
+        const ctx = getAudioContext();
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // دو، می، سل، دو بالا
+        
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
+            
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime + i * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + i * 0.1 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.1 + 0.25);
+            
+            osc.start(ctx.currentTime + i * 0.1);
+            osc.stop(ctx.currentTime + i * 0.1 + 0.3);
+        });
+    } catch (e) {}
+}
+
+// تابع پخش صدای خطا (اختیاری)
+function playErrorSound() {
+    try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2);
+        
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.2);
+    } catch (e) {}
+    
+}
+
+// اینجا تابع جدید رو اضافه کن:
+function playLoseSound() {
+    try {
+        const ctx = getAudioContext();
+        const notes = [392.00, 329.63, 261.63];
+        
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.15);
+            
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime + i * 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + i * 0.15 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.15 + 0.3);
+            
+            osc.start(ctx.currentTime + i * 0.15);
+            osc.stop(ctx.currentTime + i * 0.15 + 0.35);
+        });
+    } catch (e) {}
+}
+
+// ===== اضافه کردن خودکار صدا به همه دکمه‌ها =====
+document.addEventListener('click', function(e) {
+    const target = e.target.closest('button, .btn, .ttt-cell, .chess-cell, nav button');
+    if (target) {
+        playClickSound();
+    }
+});
 
 </script>
 
