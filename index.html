@@ -1334,33 +1334,88 @@ tttBotMove,
 
 }
 
-function tttBotMove(){
 
-const empty=
-tttBoard
-.map((v,i)=>v===''?i:null)
-.filter(v=>v!==null);
+function tttBotMove() {
+    if (tttGameOver) return;
 
-if(!empty.length)return;
+    const empty = tttBoard
+        .map((v, i) => v === '' ? i : null)
+        .filter(v => v !== null);
 
-const index=
-empty[
-Math.floor(
-Math.random()*empty.length
-)
-];
+    if (!empty.length) return;
 
-tttBoard[index]='O';
+    function minimax(board, isMaximizing) {
+        const wins = [
+            [0,1,2], [3,4,5], [6,7,8],
+            [0,3,6], [1,4,7], [2,5,8],
+            [0,4,8], [2,4,6]
+        ];
 
-if(checkTTTEnd())return;
+        for (const [a, b, c] of wins) {
+            if (
+                board[a] &&
+                board[a] === board[b] &&
+                board[a] === board[c]
+            ) {
+                if (board[a] === 'O') return 10;
+                if (board[a] === 'X') return -10;
+            }
+        }
 
-tttTurn='X';
+        if (!board.includes('')) return 0;
 
-window.winningCells=[];
+        if (isMaximizing) {
+            let best = -Infinity;
 
-renderTTT();
+            for (const i of board.map((v, i) => v === '' ? i : null).filter(v => v !== null)) {
+                board[i] = 'O';
+                best = Math.max(best, minimax(board, false));
+                board[i] = '';
+            }
 
+            return best;
+        } else {
+            let best = Infinity;
+
+            for (const i of board.map((v, i) => v === '' ? i : null).filter(v => v !== null)) {
+                board[i] = 'X';
+                best = Math.min(best, minimax(board, true));
+                board[i] = '';
+            }
+
+            return best;
+        }
+    }
+
+    let bestScore = -Infinity;
+    let bestMoves = [];
+
+    for (const i of empty) {
+        tttBoard[i] = 'O';
+        const score = minimax(tttBoard, false);
+        tttBoard[i] = '';
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestMoves = [i];
+        } else if (score === bestScore) {
+            bestMoves.push(i);
+        }
+    }
+
+    const index = bestMoves[
+        Math.floor(Math.random() * bestMoves.length)
+    ];
+
+    tttBoard[index] = 'O';
+
+    if (checkTTTEnd()) return;
+
+    tttTurn = 'X';
+    window.winningCells = [];
+    renderTTT();
 }
+
 
 function checkTTTEnd(){
 
@@ -2107,66 +2162,55 @@ document.getElementById(
 
 function checkMathAnswer(){
 
-if(
-!mathPlaying ||
-!mathDifficulty
-){
-return;
+    if(!mathPlaying || !mathDifficulty){
+        return;
+    }
+
+    const input = document.getElementById('mathAnswer');
+    const message = document.getElementById('mathMessage');
+
+    if(input.value.trim() === ''){
+        message.innerText = 'لطفاً جواب را وارد کن!';
+        return;
+    }
+
+    // پاک کردن پیام قبلی
+    message.innerText = '';
+
+    const answer = Number(input.value);
+
+    if(answer === mathAnswerCorrect){
+
+        clearInterval(mathInterval);
+
+        mathScore++;
+
+        document.getElementById('mathScore').innerText = mathScore;
+
+        localStorage.setItem('mathScore', mathScore);
+
+        playWinSound();
+
+        message.innerText = '✅ آفرین! جواب درست است.';
+
+        setTimeout(function(){
+            if(mathPlaying){
+                nextMathQuestion();
+            }
+        }, 400);
+
+    }else{
+
+        playErrorSound();
+
+        message.innerText = '❌ جواب اشتباه است! دوباره تلاش کن.';
+
+        // خالی کردن ورودی فقط پس از خواندن مقدار آن
+        input.value = '';
+
+    }
 }
 
-const answer=
-Number(
-document.getElementById(
-'mathAnswer'
-).value
-);
-
-if(
-answer===mathAnswerCorrect
-){
-
-clearInterval(
-mathInterval
-);
-
-mathScore++;
-
-document.getElementById(
-'mathScore'
-).innerText=mathScore;
-
-localStorage.setItem(
-'mathScore',
-mathScore
-);
-
-document.getElementById(
-'mathMessage'
-).innerText=
-playWinSound();
-'✅ درست!';
-
-setTimeout(()=>{
-
-if(mathPlaying){
-
-nextMathQuestion();
-
-}
-
-},400);
-
-}else{
-
-document.getElementById(
-'mathMessage'
-).innerText=
-playErrorSound();
-'❌ جواب اشتباه است!';
-
-}
-
-}
 
 document.getElementById(
 'mathAnswer'
@@ -2390,4 +2434,4 @@ document.addEventListener('click', function(e) {
 </script>
 
 </body>
-</html>
+    </html>
