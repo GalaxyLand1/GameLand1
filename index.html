@@ -1344,70 +1344,76 @@ function tttBotMove() {
 
     if (!empty.length) return;
 
-    function minimax(board, isMaximizing) {
-        const wins = [
-            [0,1,2], [3,4,5], [6,7,8],
-            [0,3,6], [1,4,7], [2,5,8],
-            [0,4,8], [2,4,6]
+    // 👈 ۳۰ درصد احتمال خطا برای اینکه پلیر شانس بردن داشته باشه
+    const makeMistake = Math.random() < 0.3;
+
+    if (makeMistake) {
+        // حرکت تصادفی (خطای ربات)
+        const randomIndex = empty[Math.floor(Math.random() * empty.length)];
+        tttBoard[randomIndex] = 'O';
+    } else {
+        // حرکت هوشمند (Minimax)
+        function minimax(board, isMaximizing) {
+            const wins = [
+                [0,1,2], [3,4,5], [6,7,8],
+                [0,3,6], [1,4,7], [2,5,8],
+                [0,4,8], [2,4,6]
+            ];
+
+            for (const [a, b, c] of wins) {
+                if (
+                    board[a] &&
+                    board[a] === board[b] &&
+                    board[a] === board[c]
+                ) {
+                    if (board[a] === 'O') return 10;
+                    if (board[a] === 'X') return -10;
+                }
+            }
+
+            if (!board.includes('')) return 0;
+
+            if (isMaximizing) {
+                let best = -Infinity;
+                for (const i of board.map((v, i) => v === '' ? i : null).filter(v => v !== null)) {
+                    board[i] = 'O';
+                    best = Math.max(best, minimax(board, false));
+                    board[i] = '';
+                }
+                return best;
+            } else {
+                let best = Infinity;
+                for (const i of board.map((v, i) => v === '' ? i : null).filter(v => v !== null)) {
+                    board[i] = 'X';
+                    best = Math.min(best, minimax(board, true));
+                    board[i] = '';
+                }
+                return best;
+            }
+        }
+
+        let bestScore = -Infinity;
+        let bestMoves = [];
+
+        for (const i of empty) {
+            tttBoard[i] = 'O';
+            const score = minimax(tttBoard, false);
+            tttBoard[i] = '';
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMoves = [i];
+            } else if (score === bestScore) {
+                bestMoves.push(i);
+            }
+        }
+
+        const index = bestMoves[
+            Math.floor(Math.random() * bestMoves.length)
         ];
 
-        for (const [a, b, c] of wins) {
-            if (
-                board[a] &&
-                board[a] === board[b] &&
-                board[a] === board[c]
-            ) {
-                if (board[a] === 'O') return 10;
-                if (board[a] === 'X') return -10;
-            }
-        }
-
-        if (!board.includes('')) return 0;
-
-        if (isMaximizing) {
-            let best = -Infinity;
-
-            for (const i of board.map((v, i) => v === '' ? i : null).filter(v => v !== null)) {
-                board[i] = 'O';
-                best = Math.max(best, minimax(board, false));
-                board[i] = '';
-            }
-
-            return best;
-        } else {
-            let best = Infinity;
-
-            for (const i of board.map((v, i) => v === '' ? i : null).filter(v => v !== null)) {
-                board[i] = 'X';
-                best = Math.min(best, minimax(board, true));
-                board[i] = '';
-            }
-
-            return best;
-        }
+        tttBoard[index] = 'O';
     }
-
-    let bestScore = -Infinity;
-    let bestMoves = [];
-
-    for (const i of empty) {
-        tttBoard[i] = 'O';
-        const score = minimax(tttBoard, false);
-        tttBoard[i] = '';
-
-        if (score > bestScore) {
-            bestScore = score;
-            bestMoves = [i];
-        } else if (score === bestScore) {
-            bestMoves.push(i);
-        }
-    }
-
-    const index = bestMoves[
-        Math.floor(Math.random() * bestMoves.length)
-    ];
-
-    tttBoard[index] = 'O';
 
     if (checkTTTEnd()) return;
 
@@ -1415,6 +1421,7 @@ function tttBotMove() {
     window.winningCells = [];
     renderTTT();
 }
+
 
 
 function checkTTTEnd(){
@@ -1451,6 +1458,7 @@ document.getElementById('tttStatus')
 
 tttGameOver=true;
 
+if (tttBot) {
 if(tttBoard[a]==='X'){
 playWinSound();
 
@@ -1467,6 +1475,9 @@ winsCount
 loadProfile();
 }else{
 playLoseSound();
+}
+} else {
+    playWinSound();
 }
 
 return true;
@@ -1589,6 +1600,8 @@ chessGameObj=new Chess();
 
 selectedSquare=null;
 
+chessWinRecorded=false; // 👈 این خط را اضافه کن
+
 document.getElementById('chessArea')
 .classList.remove('hidden');
 
@@ -1641,6 +1654,8 @@ if(piece.color==='w'){
     cell.innerText=getPieceSymbol(piece);
     cell.style.color='black';
 }
+
+
 
 function getPieceSymbol(piece){
 
@@ -1768,21 +1783,26 @@ if(chessBot){
 playWinSound();
 status='♚ کیش‌و‌مات! تو بردی 🎉'
 
+if(!chessWinRecorded){
 let wins=
 Number(localStorage.getItem('chessWins')||0)+1;
 localStorage.setItem('chessWins',wins);
 chessWinRecorded=true;
 loadProfile();
+}
 }else{
 playWinSound();
 status='♚ کیش‌و‌مات! سفید برد ♟'
 }
 }
 
+
+
 }else{
 playLoseSound();  // ← مساوی هم باخت حساب کن
 status='بازی تمام شد 🎉';
 }
+
 
 }
 
@@ -2126,6 +2146,9 @@ clearInterval(
 mathInterval
 );
 
+mathScore = 0;
+    document.getElementById('mathScore').innerText = '0';
+
 document.getElementById(
 'mathMessage'
 ).innerText=
@@ -2187,7 +2210,10 @@ function checkMathAnswer(){
 
         document.getElementById('mathScore').innerText = mathScore;
 
-        localStorage.setItem('mathScore', mathScore);
+        const currentHighScore = Number(localStorage.getItem('mathHighScore') || '0');
+        if(mathScore > currentHighScore){
+            localStorage.setItem('mathHighScore', mathScore);
+        }
 
         playWinSound();
 
@@ -2258,7 +2284,7 @@ localStorage.getItem(
 
 const math=
 localStorage.getItem(
-'mathScore'
+'mathHighScore'
 )||'0';
 
 const wins=
@@ -2434,4 +2460,4 @@ document.addEventListener('click', function(e) {
 </script>
 
 </body>
-</html>
+    </html>
