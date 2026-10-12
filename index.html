@@ -601,8 +601,6 @@ main {
 
 </style>
 
-
-
 </head>
 
 <body>
@@ -1964,52 +1962,53 @@ status+=' — کیش!';
 
 }
 
-if(
-chessGameObj.game_over()
-){
+if(chessGameObj.game_over()){
 
-if(
-chessGameObj.in_checkmate()
-){
-    // کی برده؟ اگه نوبت سفید باشه یعنی سیاه (ربات) برده
-if(chessGameObj.turn()==='w'){
-if(chessBot){
-playLoseSound();  // ← کاربر (سفید) باخته
-status='♚ کیش‌ومات! ربات برد 🤖';
- }else{
-playWinSound();  // ← کاربر (سفید) برده
-status='♚ کیش‌و‌مات! سیاه برد ♟'
+    if(chessGameObj.in_checkmate()){
+
+        if(chessGameObj.turn()==='w'){
+
+            if(chessBot){
+                playLoseSound();
+                status='♚ کیش‌ومات! ربات برد 🤖';
+            }else{
+                playWinSound();
+                status='♚ کیش‌و‌مات! سیاه برد ♟';
+            }
+
+        }else{
+
+            if(chessBot){
+                playWinSound();
+                status='♚ کیش‌و‌مات! تو بردی 🎉';
+
+                if(!chessWinRecorded){
+                    let wins=Number(localStorage.getItem('chessWins')||0)+1;
+                    localStorage.setItem('chessWins',wins);
+                    chessWinRecorded=true;
+                    loadProfile();
+                }
+
+            }else{
+                playWinSound();
+                status='♚ کیش‌و‌مات! سفید برد ♟';
+            }
+        }
+
+    }else{
+
+        // در بازی دونفره، حتی مساوی هم صدای برد پخش می‌کند
+        if(!chessBot){
+            playWinSound();
+        }else{
+            playLoseSound();
+        }
+
+        status='بازی تمام شد 🎉';
+    }
 }
-}else{
-if(chessBot){
-playWinSound();
-status='♚ کیش‌و‌مات! تو بردی 🎉'
 
-if(!chessWinRecorded){
-let wins=
-Number(localStorage.getItem('chessWins')||0)+1;
-localStorage.setItem('chessWins',wins);
-chessWinRecorded=true;
-loadProfile();
-}
-}else{
-playWinSound();
-status='♚ کیش‌و‌مات! سفید برد ♟'
-}
-}
-
-
-
-}else{
-playLoseSound();  // ← مساوی هم باخت حساب کن
-status='بازی تمام شد 🎉';
-}
-
-
-}
-
-document.getElementById('chessStatus')
-.innerText=status;
+document.getElementById('chessStatus').innerText=status;
 
 }
 
@@ -2732,4 +2731,4 @@ renderNotifications();
 </script>
 
 </body>
-</html>
+    </html>
