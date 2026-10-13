@@ -599,6 +599,64 @@ main {
     font-size: 11px;
 }
 
+/* بازی قارچ‌خور بی‌نهایت */
+.mushroom-game {
+    max-width: 850px;
+    margin: auto;
+    text-align: center;
+}
+
+.mushroom-hud {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    color: #ffe082;
+    font-size: 16px;
+}
+
+.mushroom-canvas {
+    display: block;
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    margin: 0 auto;
+    border: 3px solid #6655c9;
+    border-radius: 14px;
+    background: #8bd8ff;
+    touch-action: none;
+}
+
+.mushroom-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+    direction: ltr;
+}
+
+.mushroom-control {
+    width: 75px;
+    height: 65px;
+    margin: 0;
+    padding: 8px;
+    font-size: 25px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.mushroom-help {
+    color: #b8badd;
+    line-height: 1.5;
+    margin-top: 3px;
+    margin-bottom: 0;
+}
+
+
 </style>
 
 </head>
@@ -795,6 +853,16 @@ Game<span>Land</span>
 بازی کردن
 </button>
 
+</div>
+
+<div class="game-card">
+    <div class="game-icon">🍄</div>
+    <h3> قارچ‌خور </h3>
+    <p>بدَو، بپر، سکه جمع کن و رکورد خودت رو بشکن!</p>
+    <button class="btn" onclick="openGame('mushroom')">
+        بازی کردن
+    </button>
+    
 </div>
 
 </div>
@@ -1155,6 +1223,63 @@ onclick="mathBack()"
 
 </section>
 
+<!-- MUSHROOM RUNNER -->
+
+<section id="mushroom" class="page game-page">
+
+    <div class="game-header">
+        <button class="btn secondary" onclick="backToGames()">
+            ← بازگشت به بازی‌ها
+        </button>
+        <h2>🍄 قارچ‌خور</h2>
+    </div>
+
+    <div class="game-panel mushroom-game">
+
+        <div class="mushroom-hud">
+            <span>⭐ امتیاز: <b id="mushroomScore">0</b></span>
+            <span>🏆 رکورد: <b id="mushroomBest">0</b></span>
+            <span>🪙 سکه: <b id="mushroomCoins">0</b></span>
+        </div>
+
+        <canvas
+            id="mushroomCanvas"
+            class="mushroom-canvas"
+            width="800"
+            height="360"
+        ></canvas>
+
+        <div id="mushroomMessage" class="result">
+            برای شروع بازی روی دکمهٔ زیر بزن!
+        </div>
+
+        <button class="btn" id="mushroomStart" onclick="startMushroomGame()">
+            🎮 شروع بازی
+        </button>
+
+<div class="mushroom-controls">
+
+    <button class="btn mushroom-control"
+        id="mushroomLeft" aria-label="چپ">⬅️</button>
+
+    <button class="btn mushroom-control"
+        id="mushroomRight" aria-label="راست">➡️</button>
+
+    <div class="mushroom-control-space"></div>
+
+    <button class="btn mushroom-control"
+        id="mushroomJump" aria-label="پرش">⬆️</button>
+
+</div>
+
+        <p class="mushroom-help">
+            با دکمه‌های چپ و راست حرکت کن و با پرش از شکاف‌ها و مانع‌ها رد شو.
+            سکه‌ها رو جمع کن تا امتیازت بیشتر بشه!
+        </p>
+
+    </div>
+</section>
+
 
 <!-- PROFILE -->
 
@@ -1212,6 +1337,11 @@ onclick="saveProfile()"
 <span id="profileChess">0</span>
 </p>
 
+<p>
+    رکورد قارچ‌خور:
+    <span id="profileMushroom">0</span>
+</p>
+
 </div>
 
 </section>
@@ -1228,6 +1358,9 @@ GameLand 🎮
 /* PAGE SYSTEM */
 
 function showPage(id,button){
+
+stopMushroomIfNeeded(id);
+
 
 document.querySelectorAll('.page')
 .forEach(page=>{
@@ -1253,6 +1386,10 @@ button.classList.add('active');
 
 
 function openGame(game){
+
+stopMushroomIfNeeded(game);
+
+window.scrollTo(0, 0);
 
 clearInterval(mathInterval);
 
@@ -1298,6 +1435,7 @@ resetMath();
 
 
 function backToGames(){
+stopMushroomIfNeeded('games');
 
 clearInterval(mathInterval);
 
@@ -2453,6 +2591,511 @@ checkMathAnswer();
 
 });
 
+/* MUSHROOM RUNNER */
+
+let mushroomCanvas = document.getElementById('mushroomCanvas');
+let mushroomCtx = mushroomCanvas.getContext('2d');
+
+let mushroomRunning = false;
+let mushroomFrame = null;
+let mushroomScore = 0;
+let mushroomCoins = 0;
+let mushroomBest = Number(localStorage.getItem('mushroomBest') || 0);
+let mushroomKeys = { left: false, right: false };
+let mushroomPlayer = null;
+// هیولای بنفش
+
+let mushroomMonsters = [];
+let mushroomNextMonsterScore = 500;
+
+let mushroomPlatforms = [];
+let mushroomTreasures = [];
+let mushroomCamera = 0;
+let mushroomLastTime = 0;
+let mushroomSpeed = 4;
+
+document.getElementById('mushroomBest').innerText = mushroomBest;
+
+function mushroomReset() {
+    mushroomScore = 0;
+    mushroomCoins = 0;
+    mushroomCamera = 0;
+    mushroomSpeed = 4;
+
+    mushroomPlayer = {
+        x: 90, y: 220, w: 30, h: 38,
+        vx: 0, vy: 0, grounded: false
+    };
+
+    mushroomPlatforms = [
+        { x: 0, y: 300, w: 650 },
+        { x: 740, y: 275, w: 220 },
+        { x: 1050, y: 300, w: 250 }
+            ];
+            
+mushroomMonsters = [];
+mushroomNextMonsterScore = 500;
+
+ mushroomTreasures = [];
+
+for (let i = 0; i < 30; i++) {
+    mushroomTreasures.push({
+        x: 400 + i * 115 + Math.random() * 35,
+        y: 190 + Math.random() * 35,
+        taken: false
+    });
+}
+
+    mushroomUpdateHUD();
+}
+
+function mushroomUpdateHUD() {
+    document.getElementById('mushroomScore').innerText = mushroomScore;
+    document.getElementById('mushroomBest').innerText = mushroomBest;
+    document.getElementById('mushroomCoins').innerText = mushroomCoins;
+}
+
+function mushroomGenerateWorld() {
+    let farthest = Math.max(...mushroomPlatforms.map(p => p.x + p.w));
+
+    while (farthest < mushroomCamera + 1500) {
+        let gap = 45 + Math.random() * 45;
+        let width = 170 + Math.random() * 100;
+        let y = 255 + Math.random() * 30;
+
+        let next = farthest + gap;
+        mushroomPlatforms.push({ x: next, y: y, w: width });
+
+let coinCount = 2;
+let coinSpacing = 65;
+
+for (let i = 0; i < coinCount; i++) {
+    mushroomTreasures.push({
+        x: next + 30 + i * coinSpacing + Math.random() * 12,
+        y: Math.max(175, Math.min(235, y - 55 - Math.random() * 15)),
+        taken: false
+    });
+}
+
+        farthest = next + width;
+    }
+
+    mushroomPlatforms = mushroomPlatforms.filter(p =>
+        p.x + p.w > mushroomCamera - 150
+    );
+
+    mushroomTreasures = mushroomTreasures.filter(c =>
+        c.x > mushroomCamera - 100 && !c.taken
+    );
+}
+
+function startMushroomGame() {
+    if (mushroomFrame) cancelAnimationFrame(mushroomFrame);
+
+    mushroomReset();
+    mushroomRunning = true;
+    mushroomLastTime = 0;
+
+    document.getElementById('mushroomMessage').innerText =
+        'بزن بریم! 🍄';
+
+    document.getElementById('mushroomStart').innerText = '🔄 شروع دوباره';
+
+    mushroomDraw();
+    mushroomFrame = requestAnimationFrame(mushroomLoop);
+}
+
+function mushroomJump() {
+    if (mushroomRunning && mushroomPlayer && mushroomPlayer.grounded) {
+        mushroomPlayer.vy = -11.5;
+        mushroomPlayer.grounded = false;
+    }
+}
+
+function mushroomLoop(time) {
+    if (!mushroomRunning) return;
+
+    let dt = mushroomLastTime ? Math.min((time - mushroomLastTime) / 16.67, 2) : 1;
+    mushroomLastTime = time;
+
+    mushroomUpdate(dt);
+    mushroomDraw();
+
+    if (mushroomRunning) {
+        mushroomFrame = requestAnimationFrame(mushroomLoop);
+    }
+}
+
+
+function mushroomUpdate(dt) {
+    const p = mushroomPlayer;
+
+    p.vx = (mushroomKeys.right ? 4.5 : 0) -
+           (mushroomKeys.left ? 4.5 : 0);
+
+    p.x += p.vx * dt;
+    p.x = Math.max(0, p.x);
+
+    const oldBottom = p.y + p.h;
+
+    p.vy += 0.55 * dt;
+    p.y += p.vy * dt;
+
+    p.grounded = false;
+
+    for (const platform of mushroomPlatforms) {
+        const overlapsX =
+            p.x + p.w > platform.x &&
+            p.x < platform.x + platform.w;
+
+        const newBottom = p.y + p.h;
+
+        if (
+            overlapsX &&
+            p.vy >= 0 &&
+            oldBottom <= platform.y &&
+            newBottom >= platform.y
+        ) {
+            p.y = platform.y - p.h;
+            p.vy = 0;
+            p.grounded = true;
+            break;
+        }
+    }
+
+    mushroomCamera = Math.max(0, p.x - 150);
+    mushroomGenerateWorld();
+    
+
+
+    for (const coin of mushroomTreasures) {
+        if (
+            !coin.taken &&
+            p.x < coin.x + 12 &&
+            p.x + p.w > coin.x - 12 &&
+            p.y < coin.y + 12 &&
+            p.y + p.h > coin.y - 12
+        ) {
+        coin.taken = true;
+mushroomCoins++;
+mushroomScore += 10;
+mushroomUpdateHUD();
+        }
+    }
+
+    mushroomScore = Math.max(
+        mushroomScore,
+        Math.floor(p.x / 10) + mushroomCoins * 10
+    );
+    
+    // ظاهر شدن هیولاها با رسیدن به امتیازهای مشخص
+    while (mushroomScore >= mushroomNextMonsterScore) {
+        const candidates = mushroomPlatforms.filter(platform =>
+        platform.x + platform.w > p.x + 900 &&
+        platform.x < p.x + 1800 &&
+            platform.w >= 60
+        );
+
+        if (candidates.length === 0) break;
+
+        const platform =
+            candidates[Math.floor(Math.random() * candidates.length)];
+
+        mushroomMonsters.push({
+            x: platform.x + Math.random() * (platform.w - 34),
+            y: platform.y - 32,
+            w: 34,
+            h: 32,
+            speed: 1 + Math.random() * 1.2,
+            direction: Math.random() < 0.5 ? -1 : 1,
+            minX: platform.x,
+            maxX: platform.x + platform.w - 34,
+            active: true
+        });
+
+        mushroomNextMonsterScore += 200;
+    }
+
+    // حرکت هیولاها و بررسی برخورد
+    for (const monster of mushroomMonsters) {
+        monster.x += monster.speed * monster.direction * dt;
+
+        if (monster.x <= monster.minX) {
+            monster.x = monster.minX;
+            monster.direction = 1;
+        }
+
+        if (monster.x >= monster.maxX) {
+            monster.x = monster.maxX;
+            monster.direction = -1;
+        }
+
+        const hit =
+            p.x < monster.x + monster.w &&
+            p.x + p.w > monster.x &&
+            p.y < monster.y + monster.h &&
+            p.y + p.h > monster.y;
+
+        if (hit) {
+            endMushroomGame();
+            return;
+        }
+    }
+
+
+    mushroomSpeed = 4 + Math.min(p.x / 1200, 2);
+
+    mushroomUpdateHUD();
+
+    if (p.y > 420) {
+        endMushroomGame();
+    }
+}
+
+
+function mushroomDraw() {
+    const ctx = mushroomCtx;
+    const p = mushroomPlayer;
+    const camera = mushroomCamera;
+
+    ctx.clearRect(0, 0, 800, 360);
+
+    // آسمان
+    const sky = ctx.createLinearGradient(0, 0, 0, 360);
+    sky.addColorStop(0, '#68c9ff');
+    sky.addColorStop(1, '#e2f8ff');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, 800, 360);
+
+    // ابرها
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 7; i++) {
+        let x = ((i * 155 - camera * 0.25) % 950 + 950) % 950 - 70;
+        let y = 35 + (i % 3) * 35;
+        ctx.beginPath();
+        ctx.arc(x, y, 19, 0, Math.PI * 2);
+        ctx.arc(x + 22, y - 9, 24, 0, Math.PI * 2);
+        ctx.arc(x + 45, y, 18, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // سکوها
+    for (const platform of mushroomPlatforms) {
+        const x = platform.x - camera;
+        if (x > 820 || x + platform.w < -10) continue;
+
+        ctx.fillStyle = '#8a542c';
+        ctx.fillRect(x, platform.y, platform.w, 60);
+
+        ctx.fillStyle = '#36b84b';
+        ctx.fillRect(x, platform.y, platform.w, 9);
+
+        ctx.fillStyle = '#b87942';
+        for (let bx = x + 12; bx < x + platform.w; bx += 32) {
+            ctx.fillRect(bx, platform.y + 22, 17, 5);
+        }
+    }
+
+    // سکه‌ها
+    for (const coin of mushroomTreasures) {
+        if (coin.taken) continue;
+        const x = coin.x - camera;
+        if (x < -20 || x > 820) continue;
+
+        ctx.fillStyle = '#ffbd16';
+        ctx.beginPath();
+        ctx.arc(x, coin.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#fff1a3';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+
+
+    // نمایش همه هیولاهای بنفش
+    for (const monster of mushroomMonsters) {
+        if (!monster.active) continue;
+
+        const mx = monster.x - camera;
+        const my = monster.y;
+
+        if (mx < -50 || mx > 850) continue;
+
+        ctx.fillStyle = '#913cff';
+        ctx.beginPath();
+        ctx.moveTo(mx + 2, my + 29);
+        ctx.lineTo(mx + 2, my + 14);
+        ctx.quadraticCurveTo(mx + 2, my, mx + 17, my);
+        ctx.quadraticCurveTo(mx + 32, my, mx + 32, my + 14);
+        ctx.lineTo(mx + 32, my + 29);
+        ctx.lineTo(mx + 24, my + 25);
+        ctx.lineTo(mx + 17, my + 31);
+        ctx.lineTo(mx + 10, my + 25);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(mx + 11, my + 12, 6, 0, Math.PI * 2);
+        ctx.arc(mx + 24, my + 12, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#252044';
+        ctx.beginPath();
+        ctx.arc(mx + 12, my + 13, 2.5, 0, Math.PI * 2);
+        ctx.arc(mx + 23, my + 13, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(mx + 17, my + 19, 5, 0.2, Math.PI - 0.2);
+        ctx.stroke();
+    }
+
+
+    // شخصیت قارچ‌خور اختصاصی
+    const x = p.x - camera;
+    const y = p.y;
+
+    // پاها
+    ctx.fillStyle = '#2445b8';
+    ctx.fillRect(x + 4, y + 25, 9, 12);
+    ctx.fillRect(x + 18, y + 25, 9, 12);
+
+    // بدن
+    ctx.fillStyle = '#e83d48';
+    ctx.fillRect(x + 4, y + 15, 23, 17);
+
+    // صورت
+    ctx.fillStyle = '#ffd1a1';
+    ctx.fillRect(x + 5, y + 8, 21, 16);
+
+    // کلاه قارچی
+    ctx.fillStyle = '#f02d42';
+    ctx.beginPath();
+    ctx.arc(x + 15, y + 10, 16, Math.PI, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x - 1, y + 8, 32, 5);
+
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(x + 9, y + 2, 4, 0, Math.PI * 2);
+    ctx.arc(x + 20, y + 2, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // چشم‌ها
+    ctx.fillStyle = '#202040';
+    ctx.fillRect(x + 10, y + 14, 3, 5);
+    ctx.fillRect(x + 20, y + 14, 3, 5);
+
+    if (!mushroomRunning) {
+        ctx.fillStyle = '#15152ddd';
+        ctx.fillRect(100, 115, 600, 90);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 27px Tahoma';
+        ctx.textAlign = 'center';
+        ctx.fillText('بازی تمام شد!', 400, 153);
+
+        ctx.font = '18px Tahoma';
+        ctx.fillText('امتیاز: ' + mushroomScore, 400, 185);
+    }
+}
+
+function endMushroomGame() {
+    if (!mushroomRunning) return;
+
+    mushroomRunning = false;
+
+    if (mushroomFrame) cancelAnimationFrame(mushroomFrame);
+
+    if (mushroomScore > mushroomBest) {
+        mushroomBest = mushroomScore;
+        localStorage.setItem('mushroomBest', mushroomBest);
+        playWinSound();
+    } else {
+        playLoseSound();
+    }
+
+    mushroomUpdateHUD();
+
+    document.getElementById('mushroomMessage').innerText =
+        'بازی تموم شد! برای ثبت رکورد جدید دوباره تلاش کن.';
+
+    mushroomDraw();
+}
+
+function mushroomSetKey(key, pressed) {
+    mushroomKeys[key] = pressed;
+}
+
+function mushroomBindButton(id, key) {
+    const button = document.getElementById(id);
+
+    button.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+
+        if (key === 'jump') {
+            mushroomJump();
+        } else {
+            mushroomSetKey(key, true);
+        }
+    });
+
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(eventName => {
+        button.addEventListener(eventName, function() {
+            if (key !== 'jump') mushroomSetKey(key, false);
+        });
+    });
+}
+
+mushroomBindButton('mushroomLeft', 'left');
+mushroomBindButton('mushroomRight', 'right');
+mushroomBindButton('mushroomJump', 'jump');
+
+document.addEventListener('keydown', function(e) {
+    if (document.getElementById('mushroom').classList.contains('active')) {
+        if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') {
+            mushroomKeys.left = true;
+            e.preventDefault();
+        }
+        if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
+            mushroomKeys.right = true;
+            e.preventDefault();
+        }
+        if (e.key === 'ArrowUp' || e.key === ' ') {
+            mushroomJump();
+            e.preventDefault();
+        }
+    }
+});
+
+document.addEventListener('keyup', function(e) {
+    if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') mushroomKeys.left = false;
+    if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') mushroomKeys.right = false;
+});
+
+// تصویر اولیه
+mushroomReset();
+mushroomRunning = false;
+mushroomDraw();
+
+
+function stopMushroomIfNeeded(nextPage) {
+    if (nextPage !== 'mushroom' && mushroomRunning) {
+        mushroomRunning = false;
+
+        if (mushroomFrame) {
+            cancelAnimationFrame(mushroomFrame);
+        }
+
+        mushroomKeys.left = false;
+        mushroomKeys.right = false;
+    }
+}
+
 
 /* PROFILE */
 
@@ -2487,6 +3130,10 @@ const math=
 localStorage.getItem(
 'mathHighScore'
 )||'0';
+const mushroomRecord =
+localStorage.getItem(
+'mushroomBest'
+)||'0';
 
 const wins=
 localStorage.getItem(
@@ -2515,6 +3162,10 @@ document.getElementById(
 document.getElementById(
 'profileMath'
 ).innerText=math;
+
+document.getElementById(
+'profileMushroom'
+).innerText = mushroomRecord;
 
 document.getElementById(
 'profileTTT'
@@ -2663,19 +3314,19 @@ document.addEventListener('click', function(e) {
 // برای تغییر اطلاعیه‌ها، فقط همین فهرست را ویرایش کن
 const siteNotifications = [
     {
-        title: "🎮 خوش آمدید!",
-        message: "به سایت GameLand خوش آمدی. از بازی‌ها لذت ببر!",
-        date: "۱۴۰۵/۰۷/۲۰"
+        title: "✨️ آخرین نسخه سایت",
+        message: "نسخه فعلی: V1.2",
+        date: "۱۴۰۵/۰۷/۲۱"
     },
     {
         title: "⚙️ رفع باگ ها",
-        message: "رفع باگ های بازی ها ، رفع باگ های گزارش شده ، رفع باگ های بخش پروفایل.",
+        message: "رفع باگ های بازی ها",
         date: "۱۴۰۵/۰۷/۲۰"
     },
     {
         title: "✏️ تغییرات سایت",
-        message: "اضافه شدن دکمه زنگوله نشون دهنده آخرین تغییرات سایت ، عوض شدن مکان دکمه های خانه و بازی ها و پروفایل ، قوی تر کردن ربات بازی دوز.",
-        date: "۱۴۰۵/۰۷/۲۰"
+        message: "اضافه شدن بازی قارچ‌خور ، اضافه شدن بخش (رکورد قارچ‌خور) در پروفایل",
+        date: "۱۴۰۵/۰۷/۲۱"
     }
 ];
 
