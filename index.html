@@ -2649,6 +2649,10 @@ for (let i = 0; i < 30; i++) {
     mushroomUpdateHUD();
 }
 
+const mushroomCoinSound = new Audio();
+mushroomCoinSound.src = new URL('coin.wav', document.baseURI).href;
+mushroomCoinSound.preload = 'auto';
+
 function mushroomUpdateHUD() {
     document.getElementById('mushroomScore').innerText = mushroomScore;
     document.getElementById('mushroomBest').innerText = mushroomBest;
@@ -2776,10 +2780,20 @@ function mushroomUpdate(dt) {
             p.y < coin.y + 12 &&
             p.y + p.h > coin.y - 12
         ) {
-        coin.taken = true;
+
+coin.taken = true;
 mushroomCoins++;
 mushroomScore += 10;
+
+// صدای واقعی گرفتن سکه 🪙
+mushroomCoinSound.currentTime = 0;
+
+mushroomCoinSound.play().catch(function(error) {
+    console.log('خطای پخش صدا:', error);
+});
+
 mushroomUpdateHUD();
+
         }
     }
 
