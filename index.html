@@ -663,6 +663,23 @@ main {
 
 <body>
 
+<!-- دکمه دانلود برنامه -->
+<div id="appDownloadArea" style="position:fixed; top:14px; left:70px; z-index:10001;">
+    <button onclick="showDownload()" style="height:44px; padding:0 14px; border:1px solid #39345e; border-radius:14px; background:#17182f; color:white; font-family:Tahoma; font-size:13px; cursor:pointer;">
+        دانلود برنامه
+    </button>
+</div>
+
+<div id="downloadBox" style="display:none; position:fixed; top:70px; left:15px; z-index:10002; width:280px; max-width:90vw; padding:18px; border:1px solid #7c5cff; border-radius:14px; background:#14162b; color:white; text-align:center; font-family:Tahoma;">
+    <p style="margin-bottom:15px;">برنامه GameLand رو دانلود می‌کنی؟</p>
+    <a href="GameLand.apk" download style="display:inline-block; background:#7c5cff; color:white; padding:12px 22px; border-radius:8px; text-decoration:none; font-weight:bold;">
+        دانلود کردن
+    </a>
+    <button onclick="document.getElementById('downloadBox').style.display='none'" style="margin-right:8px; padding:10px; background:#292044; color:white; border:0; border-radius:8px;">
+        بستن
+    </button>
+</div>
+
 <!-- زنگوله اعلان‌ها -->
 <div class="notification-area">
 
@@ -1356,6 +1373,9 @@ GameLand 🎮
 <script>
 
 /* PAGE SYSTEM */
+function showDownload() {
+    document.getElementById('downloadBox').style.display = 'block';
+}
 
 function showPage(id,button){
 
@@ -3396,4 +3416,4 @@ renderNotifications();
 </script>
 
 </body>
-    </html>
+</html>
