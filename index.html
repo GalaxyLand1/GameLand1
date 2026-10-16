@@ -664,7 +664,7 @@ main {
 <body>
 
 <!-- دکمه دانلود برنامه -->
-<div id="appDownloadArea" style="position:fixed; top:14px; left:70px; z-index:10001;">
+<div id="appDownloadArea" style="position:fixed; top:14px; left:125px; z-index:10001;">
     <button onclick="showDownload()" style="height:44px; padding:0 14px; border:1px solid #39345e; border-radius:14px; background:#17182f; color:white; font-family:Tahoma; font-size:13px; cursor:pointer;">
         دانلود برنامه
     </button>
@@ -678,6 +678,92 @@ main {
     <button onclick="document.getElementById('downloadBox').style.display='none'" style="margin-right:8px; padding:10px; background:#292044; color:white; border:0; border-radius:8px;">
         بستن
     </button>
+</div>
+
+<!-- دکمه راهنمای سایت -->
+<div style="position:fixed; top:14px; left:70px; z-index:10001;">
+    <button onclick="toggleGuide()" aria-label="راهنمای سایت"
+        style="width:44px; height:44px; border:1px solid #39345e; border-radius:14px; background:#17182f; color:white; font-size:22px; cursor:pointer;">
+        📖
+    </button>
+</div>
+
+<!-- پنل راهنمای سایت -->
+<div id="guidePanel" dir="rtl"
+    style="display:none; position:fixed; top:70px; left:15px; z-index:10003; width:320px; max-width:90vw; max-height:75vh; overflow-y:auto; padding:18px; border:1px solid #7c5cff; border-radius:16px; background:#14162b; color:white; font-family:Tahoma; text-align:right; box-sizing:border-box;">
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0; color:#b7a2ff;">📖 راهنمای GameLand</h3>
+        <button onclick="toggleGuide(false)"
+            style="background:#292044; color:white; border:0; border-radius:8px; padding:7px 12px; font-size:18px;">×</button>
+    </div>
+
+    <hr style="border-color:#39345e;">
+
+    <h3>🎮 معرفی سایت</h3>
+    <p>به GameLand خوش اومدی! اینجا می‌تونی بازی‌های سرگرم‌کننده رو تجربه کنی.</p>
+    
+        <hr style="border-color:#39345e;">
+
+    <h3 style="margin-top:28px; margin-bottom:12px;">🕹️ راهنمای بازی‌ها</h3>
+
+
+<div style="margin-top:18px;">
+
+    <div style="margin-bottom:22px;">
+        <h3 style="font-size:19px; margin-bottom:7px;">🔢 حدس عدد</h3>
+        <p style="font-size:14px; line-height:2; color:#c4c5d8;">
+            عدد مخفی رو حدس بزن و با راهنمایی‌های بازی، جواب درست رو پیدا کن.
+        </p>
+    </div>
+
+    <div style="margin-bottom:22px;">
+        <h3 style="font-size:19px; margin-bottom:7px;">⭕ دوز</h3>
+        <p style="font-size:14px; line-height:2; color:#c4c5d8;">
+            خانه‌های جدول رو انتخاب کن و سعی کن سه علامت یکسان رو در یک ردیف، ستون یا قطر قرار بدی تا برنده بشی.
+        </p>
+    </div>
+
+    <div style="margin-bottom:22px;">
+        <h3 style="font-size:19px; margin-bottom:7px;">✊ سنگ کاغذ قیچی</h3>
+        <p style="font-size:14px; line-height:2; color:#c4c5d8;">
+            یکی از سه گزینهٔ سنگ، کاغذ یا قیچی رو انتخاب کن و با ربات رقابت کن.
+        </p>
+    </div>
+
+    <div style="margin-bottom:22px;">
+        <h3 style="font-size:19px; margin-bottom:7px;">♟️ شطرنج</h3>
+        <p style="font-size:14px; line-height:2; color:#c4c5d8;">
+            مهره‌ها رو طبق قوانین شطرنج حرکت بده و تلاش کن شاه حریف رو کیش‌ومات کنی.
+        </p>
+    </div>
+
+    <div style="margin-bottom:22px;">
+        <h3 style="font-size:19px; margin-bottom:7px;">🧠 مسابقه ریاضی</h3>
+        <p style="font-size:14px; line-height:2; color:#c4c5d8;">
+            قبل از تموم شدن زمان، سؤال‌های ریاضی رو حل کن و امتیاز بگیر.
+        </p>
+    </div>
+
+    <div style="margin-bottom:22px;">
+        <h3 style="font-size:19px; margin-bottom:7px;">🍄 قارچ‌خور</h3>
+        <p style="font-size:14px; line-height:2; color:#c4c5d8;">
+بدو، بپر، از موانع عبور کن، سکه جمع کن و رکورد خودت رو بشکن!
+        </p>
+    </div>
+
+</div>
+
+
+    <hr style="border-color:#39345e;">
+
+    <h3>👤 پروفایل</h3>
+    <p>از بخش پروفایل برای دیدن اطلاعات و آمار ثبت‌شده در سایت استفاده کن.</p>
+
+    <h3>📲 دانلود برنامه</h3>
+    <p>روی دکمه دانلود برنامه بزن و سپس گزینه دانلود رو انتخاب کن.</p>
+
+    <p style="color:#b7a2ff; text-align:center;">موفق باشی، گیمر! 💜</p>
 </div>
 
 <!-- زنگوله اعلان‌ها -->
@@ -1375,6 +1461,24 @@ GameLand 🎮
 /* PAGE SYSTEM */
 function showDownload() {
     document.getElementById('downloadBox').style.display = 'block';
+}
+
+function toggleGuide(show) {
+    const panel = document.getElementById('guidePanel');
+
+    const open = show === undefined
+        ? panel.style.display === 'none'
+        : show;
+
+    panel.style.display = open ? 'block' : 'none';
+
+    if (open) {
+        document.getElementById('downloadBox').style.display = 'none';
+
+        if (typeof toggleNotifications === 'function') {
+            toggleNotifications(false);
+        }
+    }
 }
 
 function showPage(id,button){
@@ -3349,7 +3453,7 @@ document.addEventListener('click', function(e) {
 const siteNotifications = [
     {
         title: "✨️ آخرین نسخه سایت",
-        message: "نسخه سایت : V1.0.3",
+        message: "نسخه سایت : V1.0.4",
         date: "۱۴۰۵/۰۷/۲۴"
     },
     {
@@ -3359,7 +3463,7 @@ const siteNotifications = [
     },
     {
         title: "✏️ تغییرات سایت",
-        message: "اضافه شدن دکمه دانلود برنامه و ساخته شدن برنامه از سایت",
+        message: "اضافه شدن دکمه دانلود برنامه و ساخته شدن برنامه از سایت ، اضافه شدن دکمه راهنمای سایت",
         date: "۱۴۰۵/۰۷/۲۴"
     }
 ];
